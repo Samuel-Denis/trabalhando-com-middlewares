@@ -11,18 +11,81 @@ const users = [];
 
 function checksExistsUserAccount(request, response, next) {
   // Complete aqui
+  const { username } = request.headers;
+
+  const user = users.find(user => user.username === username);
+
+  if(!user){
+    return response.status(404).json({ error : "Non-existent user"});
+  }
+
+  request.user = user;
+
+  return next();
+  
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
   // Complete aqui
+  const { user } = request;
+
+  const numberTodo = user.todos.length;
+
+  if(user.pro){
+    return next();
+  }
+  if(numberTodo > 9 ){
+    return response.status(403).json({ message : 'Activate pro mode to add more TODO'})
+  }
+
+  return next();
+
+
 }
 
 function checksTodoExists(request, response, next) {
   // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+  const user = users.find(user => user.username === username);
+
+  if(!user){
+    return response.status(404).json({ error : "Non-existent user"});
+  }
+
+  const uuidValidate = validate(id);
+
+  if(!uuidValidate){
+    return response.status(400).json();
+  }
+
+  const existsTodoUser = user.todos.find((todo) => todo.id === id);
+
+  if (!existsTodoUser){
+    return response.status(404).json({ error : "TODO informed does not belong to the past user"});
+  }
+
+  request.todo = existsTodoUser;
+  request.user = user;
+
+  return next();
+
+
 }
 
 function findUserById(request, response, next) {
   // Complete aqui
+  const { id } = request.params;
+
+  const user = users.find(user => user.id === id);
+
+  if(!user){
+    return response.status(404).json({ error : "Non-existent user"});
+  }
+
+  request.user = user;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
